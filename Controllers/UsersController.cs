@@ -4,8 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Hosting; // Add this for file paths
 
+using Microsoft.AspNetCore.Authorization;
+
 namespace ChatApp.Controllers
 {
+	[Authorize]
 	[ApiController]
 	[Route("api/[controller]")]
 	public class UsersController : ControllerBase

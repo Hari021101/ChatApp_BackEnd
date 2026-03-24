@@ -22,6 +22,23 @@ try
 	builder.Services.AddEndpointsApiExplorer();
 	builder.Services.AddSwaggerGen();
 
+	// --- ADD JWT AUTHENTICATION ---
+	var projectId = builder.Configuration["Firebase:ProjectId"];
+	builder.Services.AddAuthentication("Bearer")
+		.AddJwtBearer("Bearer", options =>
+		{
+			options.Authority = $"https://securetoken.google.com/{projectId}";
+			options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+			{
+				ValidateIssuer = true,
+				ValidIssuer = $"https://securetoken.google.com/{projectId}",
+				ValidateAudience = true,
+				ValidAudience = projectId,
+				ValidateLifetime = true
+			};
+		});
+	// ------------------------------
+
 	var app = builder.Build();
 
 	// 1. Database Creation
@@ -41,6 +58,8 @@ try
 	app.UseRouting();
 	app.UseCors();
 	// app.UseHttpsRedirection(); // Commented out to avoid local SSL issues
+
+	app.UseAuthentication(); // --- ADD THIS ---
 	app.UseAuthorization();
 
 	app.MapControllers();
