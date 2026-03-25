@@ -31,7 +31,11 @@ namespace ChatApp.Controllers
 		[HttpPost]
 		public async Task<ActionResult<User>> CreateUser(User user)
 		{
-			user.Id = Guid.NewGuid();
+			if (string.IsNullOrEmpty(user.Id))
+			{
+				user.Id = Guid.NewGuid().ToString();
+			}
+
 			_context.Users.Add(user);
 			await _context.SaveChangesAsync();
 			return CreatedAtAction(nameof(GetUsers), new { id = user.Id }, user);
@@ -91,8 +95,26 @@ namespace ChatApp.Controllers
 			return user;
 		}
 
+		[HttpGet("search")]
+		public async Task<ActionResult<IEnumerable<User>>> Search([FromQuery] string query)
+		{
+			if (string.IsNullOrWhiteSpace(query))
+			{
+				return Ok(new List<User>());
+			}
+
+			var lowerQuery = query.ToLower();
+			var users = await _context.Users
+				.Where(u => u.DisplayName.ToLower().Contains(lowerQuery) || 
+                            u.Email.ToLower().Contains(lowerQuery))
+				.Take(20) // Limit to top 20 results
+				.ToListAsync();
+
+			return Ok(users);
+		}
+
 		[HttpPut("profile")]
-		public async Task<IActionResult> UpdateProfile(User updatedUser)
+		public async Task<IActionResult> UpdateProfile([FromBody] User updatedUser)
 		{
 			Console.WriteLine($"DEBUG: Received profile update request for {updatedUser?.Email}");
 

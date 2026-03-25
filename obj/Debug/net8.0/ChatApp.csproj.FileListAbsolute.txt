@@ -147,3 +147,4 @@ C:\Users\Mhari\source\repos\ChatApp\ChatApp\obj\Debug\net8.0\ChatApp.pdb
 C:\Users\Mhari\source\repos\ChatApp\ChatApp\obj\Debug\net8.0\ChatApp.genruntimeconfig.cache
 C:\Users\Mhari\source\repos\ChatApp\ChatApp\obj\Debug\net8.0\ref\ChatApp.dll
 C:\Users\Mhari\source\repos\ChatApp\ChatApp\bin\Debug\net8.0\ChatApp.staticwebassets.runtime.json
+C:\Users\Mhari\source\repos\ChatApp\ChatApp\obj\Debug\net8.0\ChatApp.sourcelink.json
