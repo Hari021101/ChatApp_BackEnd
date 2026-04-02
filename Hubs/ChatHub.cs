@@ -4,7 +4,11 @@ namespace ChatApp.Hubs
 	using ChatApp.Models;
 	using Microsoft.EntityFrameworkCore;
 	using Microsoft.AspNetCore.SignalR;
+	using Microsoft.AspNetCore.Authorization;
+	using System;
+	using System.Threading.Tasks;
 
+	[Authorize]
 	public class ChatHub : Hub
 	{
 		private readonly ApplicationDbContext _context;
@@ -52,7 +56,35 @@ namespace ChatApp.Hubs
 
 		public override async Task OnConnectedAsync()
 		{
+			var userId = Context.UserIdentifier;
+			if (!string.IsNullOrEmpty(userId))
+			{
+				var user = await _context.Users.FindAsync(userId);
+				if (user != null)
+				{
+					user.IsOnline = true;
+					await _context.SaveChangesAsync();
+					await Clients.All.SendAsync("UserPresenceUpdate", userId, true, DateTime.UtcNow);
+				}
+			}
 			await base.OnConnectedAsync();
+		}
+
+		public override async Task OnDisconnectedAsync(Exception? exception)
+		{
+			var userId = Context.UserIdentifier;
+			if (!string.IsNullOrEmpty(userId))
+			{
+				var user = await _context.Users.FindAsync(userId);
+				if (user != null)
+				{
+					user.IsOnline = false;
+					user.LastSeen = DateTime.UtcNow;
+					await _context.SaveChangesAsync();
+					await Clients.All.SendAsync("UserPresenceUpdate", userId, false, user.LastSeen);
+				}
+			}
+			await base.OnDisconnectedAsync(exception);
 		}
 	}
 }

@@ -34,7 +34,8 @@ try
 				ValidIssuer = $"https://securetoken.google.com/{projectId}",
 				ValidateAudience = true,
 				ValidAudience = projectId,
-				ValidateLifetime = true
+				ValidateLifetime = true,
+				NameClaimType = "sub" // Use Firebase UID as the user's name/identity
 			};
 		});
 	// ------------------------------

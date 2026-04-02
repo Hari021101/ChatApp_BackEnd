@@ -10,6 +10,7 @@ namespace ChatApp.Models
         public bool IsGroup { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public string? LastMessage { get; set; }
+        public string? ImageURL { get; set; }
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         public virtual ICollection<ChatParticipant> Participants { get; set; } = new List<ChatParticipant>();

@@ -36,6 +36,7 @@ namespace ChatApp.Controllers
                     Id = cp.Chat.Id,
                     Title = cp.Chat.Title,
                     IsGroup = cp.Chat.IsGroup,
+                    ImageURL = cp.Chat.ImageURL,
                     LastMessage = cp.Chat.LastMessage,
                     UpdatedAt = cp.Chat.UpdatedAt,
                     Participants = cp.Chat.Participants.Select(p => new
@@ -71,7 +72,6 @@ namespace ChatApp.Controllers
             return Ok(messages.OrderBy(m => m.Timestamp)); // Return in chronological order
         }
 
-        // Create a new direct chat between two users
         [HttpPost("direct")]
         public async Task<ActionResult<Chat>> CreateDirectChat([FromBody] DirectChatRequest request)
         {
@@ -91,7 +91,7 @@ namespace ChatApp.Controllers
             {
                 Id = Guid.NewGuid(),
                 IsGroup = false,
-                Title = "Direct Chat", // Frontend can override this with the other user's name
+                Title = "Direct Chat",
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -104,11 +104,44 @@ namespace ChatApp.Controllers
 
             return CreatedAtAction(nameof(GetChatMessages), new { chatId = chat.Id }, chat);
         }
+
+        // Create a new group chat
+        [HttpPost("group")]
+        public async Task<ActionResult<Chat>> CreateGroupChat([FromBody] GroupChatRequest request)
+        {
+            var chat = new Chat
+            {
+                Id = Guid.NewGuid(),
+                IsGroup = true,
+                Title = request.Title,
+                ImageURL = request.ImageURL,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                LastMessage = "Group created"
+            };
+
+            foreach (var userId in request.ParticipantIds)
+            {
+                chat.Participants.Add(new ChatParticipant { ChatId = chat.Id, UserId = userId });
+            }
+
+            _context.Chats.Add(chat);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetChatMessages), new { chatId = chat.Id }, chat);
+        }
     }
 
     public class DirectChatRequest
     {
         public string UserId1 { get; set; } = string.Empty;
         public string UserId2 { get; set; } = string.Empty;
+    }
+
+    public class GroupChatRequest
+    {
+        public string Title { get; set; } = string.Empty;
+        public string? ImageURL { get; set; }
+        public List<string> ParticipantIds { get; set; } = new List<string>();
     }
 }
