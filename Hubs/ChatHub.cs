@@ -35,7 +35,8 @@ namespace ChatApp.Hubs
 				SenderId = senderId,
 				Content = content,
 				Timestamp = DateTime.UtcNow,
-				MessageType = messageType
+				MessageType = messageType,
+				IsRead = false
 			};
 
 			_context.Messages.Add(message);
@@ -51,7 +52,33 @@ namespace ChatApp.Hubs
 			await _context.SaveChangesAsync();
 
 			// 3. Broadcast to എല്ലാവരും in the Chat Group
-			await Clients.Group(chatId).SendAsync("ReceiveMessage", chatId, senderId, content, message.Timestamp, messageType);
+			await Clients.Group(chatId).SendAsync("ReceiveMessage", chatId, senderId, content, message.Timestamp, messageType, message.IsRead);
+		}
+
+		public async Task MarkAsRead(string chatId)
+		{
+			var userId = Context.UserIdentifier;
+			if (string.IsNullOrEmpty(userId) || !Guid.TryParse(chatId, out var chatGuid)) return;
+
+			// Mark all unread messages in this chat NOT sent by the current user as read
+			var unreadMessages = await _context.Messages
+				.Where(m => m.ChatId == chatGuid && m.SenderId != userId && !m.IsRead)
+				.ToListAsync();
+
+			if (unreadMessages.Any())
+			{
+				var now = DateTime.UtcNow;
+				foreach (var msg in unreadMessages)
+				{
+					msg.IsRead = true;
+					msg.ReadAt = now;
+				}
+
+				await _context.SaveChangesAsync();
+
+				// Broadcast that messages were read to എല്ലാവരും in the Chat Group (e.g. the sender)
+				await Clients.Group(chatId).SendAsync("MessagesRead", chatId, userId, now);
+			}
 		}
 
 		public override async Task OnConnectedAsync()

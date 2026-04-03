@@ -156,5 +156,25 @@ namespace ChatApp.Controllers
 			}
 		}
 
+		[HttpPut("pushtoken")]
+		public async Task<IActionResult> UpdatePushToken([FromBody] PushTokenRequest request)
+		{
+			var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+			if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+			var user = await _context.Users.FindAsync(userId);
+			if (user == null) return NotFound();
+
+			user.PushToken = request.Token;
+			await _context.SaveChangesAsync();
+
+			return NoContent();
+		}
+
+	}
+
+	public class PushTokenRequest
+	{
+		public string? Token { get; set; }
 	}
 }

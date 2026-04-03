@@ -13,5 +13,6 @@ namespace ChatApp.Models
 			public string? Location { get; set; }
 			public string? Website { get; set; }
 			public string? DateOfBirth { get; set; }
+			public string? PushToken { get; set; }
 	}
 }

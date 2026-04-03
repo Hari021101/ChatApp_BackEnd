@@ -39,6 +39,7 @@ namespace ChatApp.Controllers
                     ImageURL = cp.Chat.ImageURL,
                     LastMessage = cp.Chat.LastMessage,
                     UpdatedAt = cp.Chat.UpdatedAt,
+                    UnreadCount = _context.Messages.Count(m => m.ChatId == cp.Chat.Id && !m.IsRead && m.SenderId != userId),
                     Participants = cp.Chat.Participants.Select(p => new
                     {
                         UserId = p.UserId,

@@ -10,6 +10,8 @@ namespace ChatApp.Models
         public string Content { get; set; } = string.Empty;
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
         public string MessageType { get; set; } = "text"; // text, image, audio, video
+        public bool IsRead { get; set; } = false;
+        public DateTime? ReadAt { get; set; }
 
         public virtual Chat? Chat { get; set; }
     }
