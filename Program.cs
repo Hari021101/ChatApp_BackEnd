@@ -1,5 +1,6 @@
 using ChatApp.Data;
 using ChatApp.Hubs;
+using ChatApp.Services;
 using Microsoft.EntityFrameworkCore;
 
 try
@@ -21,6 +22,7 @@ try
 	builder.Services.AddSignalR();
 	builder.Services.AddEndpointsApiExplorer();
 	builder.Services.AddSwaggerGen();
+	builder.Services.AddHttpClient<INotificationService, ExpoNotificationService>();
 
 	// --- ADD JWT AUTHENTICATION ---
 	var projectId = builder.Configuration["Firebase:ProjectId"];

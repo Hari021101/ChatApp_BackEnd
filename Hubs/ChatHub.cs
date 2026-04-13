@@ -8,14 +8,18 @@ namespace ChatApp.Hubs
 	using System;
 	using System.Threading.Tasks;
 
+	using ChatApp.Services;
+
 	[Authorize]
 	public class ChatHub : Hub
 	{
 		private readonly ApplicationDbContext _context;
+		private readonly INotificationService _notificationService;
 
-		public ChatHub(ApplicationDbContext context)
+		public ChatHub(ApplicationDbContext context, INotificationService notificationService)
 		{
 			_context = context;
+			_notificationService = notificationService;
 		}
 
 		public async Task JoinChat(string chatId)
@@ -42,11 +46,38 @@ namespace ChatApp.Hubs
 			_context.Messages.Add(message);
 
 			// 2. Update Chat's LastMessage and UpdatedAt
-			var chat = await _context.Chats.FindAsync(chatGuid);
+			var chat = await _context.Chats
+				.Include(c => c.Participants)
+				.ThenInclude(p => p.User)
+				.FirstOrDefaultAsync(c => c.Id == chatGuid);
+
 			if (chat != null)
 			{
 				chat.LastMessage = content;
 				chat.UpdatedAt = DateTime.UtcNow;
+
+				// 2.5 Send Push Notifications to offline users
+				var sender = await _context.Users.FindAsync(senderId);
+				var senderName = sender?.DisplayName ?? "Someone";
+
+				foreach (var participant in chat.Participants)
+				{
+					if (participant.UserId != senderId && participant.User != null)
+					{
+						if (!participant.User.IsOnline && !string.IsNullOrEmpty(participant.User.PushToken))
+						{
+							var title = chat.IsGroup ? $"{chat.Title} ({senderName})" : senderName;
+							var notificationContent = messageType == "text" ? content : $"Sent a {messageType}";
+
+							await _notificationService.SendNotificationAsync(
+								participant.User.PushToken,
+								title,
+								notificationContent,
+								new { chatId = chatId }
+							);
+						}
+					}
+				}
 			}
 
 			await _context.SaveChangesAsync();
