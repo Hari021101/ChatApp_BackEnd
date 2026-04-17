@@ -1,4 +1,4 @@
-﻿using ChatApp.Data;
+using ChatApp.Data;
 using ChatApp.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -17,7 +17,7 @@ namespace ChatApp.Controllers
 		public async Task<ActionResult<IEnumerable<Message>>> GetMessages(Guid conversationId)
 		{
 			return await _context.Messages
-				.Where(m => m.ConversationId == conversationId)
+				.Where(m => m.ChatId == conversationId)
 				.OrderBy(m => m.Timestamp)
 				.ToListAsync();
 		}

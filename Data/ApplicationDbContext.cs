@@ -12,6 +12,7 @@ namespace ChatApp.Data
 		public DbSet<Chat> Chats { get; set; }
 		public DbSet<Message> Messages { get; set; }
 		public DbSet<ChatParticipant> ChatParticipants { get; set; }
+		public DbSet<Transaction> Transactions { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -30,6 +31,20 @@ namespace ChatApp.Data
 				.HasOne(cp => cp.User)
 				.WithMany()
 				.HasForeignKey(cp => cp.UserId);
+
+			// Transaction relationships
+			modelBuilder.Entity<Transaction>()
+				.HasOne(t => t.Sender)
+				.WithMany()
+				.HasForeignKey(t => t.SenderId)
+				.OnDelete(DeleteBehavior.Restrict);
+
+			modelBuilder.Entity<Transaction>()
+				.HasOne(t => t.Receiver)
+				.WithMany()
+				.HasForeignKey(t => t.ReceiverId)
+				.IsRequired(false)
+				.OnDelete(DeleteBehavior.SetNull);
 		}
 	}
 

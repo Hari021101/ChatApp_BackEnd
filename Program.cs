@@ -23,21 +23,21 @@ try
 	builder.Services.AddEndpointsApiExplorer();
 	builder.Services.AddSwaggerGen();
 	builder.Services.AddHttpClient<INotificationService, ExpoNotificationService>();
+	builder.Services.AddScoped<IAuthService, AuthService>();
 
 	// --- ADD JWT AUTHENTICATION ---
-	var projectId = builder.Configuration["Firebase:ProjectId"];
 	builder.Services.AddAuthentication("Bearer")
 		.AddJwtBearer("Bearer", options =>
 		{
-			options.Authority = $"https://securetoken.google.com/{projectId}";
 			options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
 			{
-				ValidateIssuer = true,
-				ValidIssuer = $"https://securetoken.google.com/{projectId}",
-				ValidateAudience = true,
-				ValidAudience = projectId,
+				ValidateIssuerSigningKey = true,
+				IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
+					System.Text.Encoding.UTF8.GetBytes(builder.Configuration.GetSection("Jwt:Key").Value ?? "DEFAULT_SECRET")),
+				ValidateIssuer = false, // Set to true if you want to validate the issuer string
+				ValidateAudience = false,
 				ValidateLifetime = true,
-				NameClaimType = "sub" // Use Firebase UID as the user's name/identity
+				ClockSkew = TimeSpan.Zero
 			};
 		});
 	// ------------------------------

@@ -14,5 +14,7 @@ namespace ChatApp.Models
 			public string? Website { get; set; }
 			public string? DateOfBirth { get; set; }
 			public string? PushToken { get; set; }
+			public byte[] PasswordHash { get; set; } = Array.Empty<byte>();
+			public byte[] PasswordSalt { get; set; } = Array.Empty<byte>();
 	}
 }
