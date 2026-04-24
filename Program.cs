@@ -14,7 +14,10 @@ try
 	{
 		options.AddDefaultPolicy(policy =>
 		{
-			policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+			policy.SetIsOriginAllowed(origin => true) // SignalR requires credentials, cannot use AllowAnyOrigin
+				  .AllowAnyHeader()
+				  .AllowAnyMethod()
+				  .AllowCredentials();
 		});
 	});
 
@@ -44,11 +47,13 @@ try
 
 	var app = builder.Build();
 
-	// 1. Database Creation
+	// 1. Apply Database Migrations on Startup
 	using (var scope = app.Services.CreateScope())
 	{
 		var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-		db.Database.EnsureCreated();
+		// NOTE: EnsureDeleted() removed — it wiped all data on every restart.
+		// Migrate() applies any pending migrations safely without destroying data.
+		db.Database.Migrate();
 	}
 
 	if (app.Environment.IsDevelopment())

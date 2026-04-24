@@ -56,10 +56,11 @@ namespace ChatApp.Hubs
 				chat.LastMessage = content;
 				chat.UpdatedAt = DateTime.UtcNow;
 
-				// 2.5 Send Push Notifications to offline users
+				// Lookup sender ONCE outside the loop (was causing N+1 DB hits)
 				var sender = await _context.Users.FindAsync(senderId);
 				var senderName = sender?.DisplayName ?? "Someone";
 
+				// 2.5 Send Push Notifications to offline users
 				foreach (var participant in chat.Participants)
 				{
 					if (participant.UserId != senderId && participant.User != null)
@@ -82,7 +83,7 @@ namespace ChatApp.Hubs
 
 			await _context.SaveChangesAsync();
 
-			// 3. Broadcast to എല്ലാവരും in the Chat Group
+			// 3. Broadcast to all in the Chat Group
 			await Clients.Group(chatId).SendAsync("ReceiveMessage", chatId, senderId, content, message.Timestamp, messageType, message.IsRead);
 		}
 
